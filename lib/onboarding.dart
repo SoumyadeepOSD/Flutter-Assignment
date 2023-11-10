@@ -1,10 +1,18 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:assignment/constant/color.dart';
 import 'package:assignment/constant/image.dart';
+import 'package:assignment/home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 TextEditingController _mobileController = TextEditingController();
+TextEditingController _otpController = TextEditingController();
+
 FirebaseAuth _auth = FirebaseAuth.instance;
+User? user;
+UserCredential? credential;
+String phoneNumber = "";
+String code = "";
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,6 +24,75 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
+    Future<void> signInWithMobile() async {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: _mobileController.text,
+        verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
+          await _auth.signInWithCredential(phoneAuthCredential).then(
+            (value) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              );
+            },
+          );
+        },
+        verificationFailed: ((error) {
+          print(error.message.toString());
+        }),
+        codeSent: (String verificationId, [int? forceResendingToken]) {
+          showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Enter OTP"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _otpController,
+                  )
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    FirebaseAuth auth = FirebaseAuth.instance;
+                    code = _otpController.text;
+                    PhoneAuthCredential credential =
+                        PhoneAuthProvider.credential(
+                      verificationId: verificationId,
+                      smsCode: code,
+                    );
+                    auth.signInWithCredential(credential).then((value) {
+                      if (value != null) {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomePage(),
+                          ),
+                        ).catchError((onError) {
+                          print(onError.toString());
+                        });
+                      }
+                    });
+                  },
+                  child: const Text("Send"),
+                ),
+              ],
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          verificationId = verificationId;
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    }
+
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -89,6 +166,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           children: [
                             const SizedBox(height: 70.0),
                             TextField(
+                              onChanged: (value) {
+                                phoneNumber = value;
+                              },
                               decoration: InputDecoration(
                                 hintText: "Enter Mobile Number",
                                 hintStyle: TextStyle(
@@ -101,7 +181,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                               ),
                               controller: _mobileController,
-                              keyboardType: TextInputType.number,
                             ),
                             const SizedBox(height: 50.0),
                             SizedBox(
@@ -113,7 +192,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   backgroundColor: darkBlue,
                                   elevation: 0.0,
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  signInWithMobile();
+                                },
                                 child: Text(
                                   "CONTINUE",
                                   style:
@@ -172,18 +253,3 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
-
-// // *Function to handle mobile auth*
-// Future<void> verifyPhoneNumber(String mobile) async {
-//   final PhoneVerificationCompleted verificationCompleted =
-//       (PhoneAuthCredential credential) async {
-//     await _auth.signInWithCredential(credential);
-//   };
-//   final PhoneVerificationFailed verificationFailed = (FirebaseException e) {
-//     if (e.code == 'invalid-phone-number') {
-//       print('The provided phone number is not valid.');
-//     } else {
-//       print(e.message);
-//     }
-//   };
-// }
