@@ -30,7 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
           await _auth.signInWithCredential(phoneAuthCredential).then(
             (value) {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const HomePage(),
@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HomePage(),
+                            builder: (context) => HomePage(),
                           ),
                         ).catchError((onError) {
                           print(onError.toString());
@@ -106,12 +106,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(height: 0.0),
-                  Text(
-                    "SKIP",
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: red,
-                      decoration: TextDecoration.underline,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "SKIP",
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: red,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],

@@ -5,4 +5,6 @@ Color white = const Color(0xFFFFFFFF);
 Color darkBlue = const Color(0xFF024163);
 Color red = Colors.red;
 Color grey = Colors.grey;
-Color lightGrey = const Color(0xFFEBE9E9);
+Color lightGrey = Colors.grey.shade100;
+Color extremelightGrey = Colors.grey.shade50;
+Color lightBlue = Colors.lightBlue.shade100;
